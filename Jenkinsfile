@@ -1,10 +1,10 @@
 pipeline {
-    agent any
+    // CAMBIO CRÍTICO: Apuntar al agente correcto que configuraste en tu clúster
+    agent { label 'agente-docker-01' }
 
     environment {
-        // Definimos el nombre y el tag de tu imagen para tener un código limpio
         IMAGE_NAME = 'mi-backend-piloto'
-        IMAGE_TAG  = "${env.BUILD_NUMBER}" // Usa el número de build de Jenkins como versión
+        IMAGE_TAG  = "${env.BUILD_NUMBER}"
     }
 
     stages {
@@ -18,18 +18,14 @@ pipeline {
 
         stage('Construir Imagen Docker') {
             steps {
-                echo "🚀 Entrando a backend-piloto y construyendo la imagen..."
+                echo "🚀 Entrando a backend-piloto y construyendo la imagen usando agente-docker-01..."
 
-                // Con 'cd' entramos a la carpeta, '&&' une los comandos si el anterior fue exitoso
                 sh """
                     cd backend-piloto && \
                     docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest .
                 """
 
                 echo "✅ ¡Imagen ${IMAGE_NAME}:${IMAGE_TAG} construida con éxito!"
-
-                // Opcional: listar las imágenes locales para confirmar que se creó
-                sh 'docker images | grep mi-backend-piloto'
             }
         }
     }
