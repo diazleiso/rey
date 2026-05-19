@@ -1,0 +1,19 @@
+services:
+  backend-piloto:
+    image: soaintchile/reybanpac-backend-piloto:poc
+    build:
+      context: ./backend-piloto
+      dockerfile: Dockerfile
+    container_name: backend-piloto
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+    restart: unless-stopped
+    networks:
+      - piloto-network
+
+networks:
+  piloto-network:
+    driver: bridge

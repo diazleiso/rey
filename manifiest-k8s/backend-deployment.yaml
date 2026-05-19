@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-piloto-deployment
+  namespace: reybanpac-piloto
+  labels:
+    app: backend-piloto
+    environment: development
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-piloto
+  template:
+    metadata:
+      labels:
+        app: backend-piloto
+        environment: development
+    spec:
+      containers:
+      - name: backend-piloto
+        image: soaintchile/reybanpac-backend-piloto:poc
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          value: "development"
+        - name: PORT
+          value: "3000"
+        resources:
+          requests:
+            memory: "700Mi"
+            cpu: "500m"
+          limits:
+            memory: "700Mi"
+            cpu: "500m"
+      restartPolicy: Always
