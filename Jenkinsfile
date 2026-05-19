@@ -1,9 +1,6 @@
 pipeline {
-    agent { label 'agente-docker-01' }
+    agent { label 'agente-docker' }
 
-    tools {
-        maven 'Maven3'
-    }
 
     options {
         timestamps()
