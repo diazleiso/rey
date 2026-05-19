@@ -5,8 +5,7 @@ pipeline {
         IMAGE_NAME = 'mi-backend-piloto'
         IMAGE_TAG  = "${env.BUILD_NUMBER}"
 
-        // FORZAMOS LA CONEXIÓN DIRECTA POR IP PARA EVITAR FALLOS DE DNS EN EL POD
-        JENKINS_URL = "http://172.22.2.201:8080/"
+
     }
 
     stages {
