@@ -2,7 +2,7 @@ pipeline {
     agent { label 'agente-docker-01' }
 
     environment {
-        DOCKER_USER  = 'osiel11dc'
+        DOCKER_USER  = 'ldiazsoanit'
         IMAGE_NAME   = 'mi-backend-piloto'
         IMAGE_TAG    = "${env.BUILD_NUMBER}"
         FULL_IMAGE   = "${DOCKER_USER}/${IMAGE_NAME}"
@@ -16,6 +16,13 @@ pipeline {
             }
         }
 
+        stage('Escanear Código con SonarQube') {
+                    steps {
+                        echo "Escanear Código con SonarQube"
+
+                    }
+                }
+
         stage('Construir Imagen Docker') {
             steps {
                 echo "🚀 Construyendo la imagen de Node.js para Reybanpac..."
@@ -27,11 +34,12 @@ pipeline {
             }
         }
 
+
         stage('Subir a Docker Hub') {
             steps {
                 echo "🔑 Iniciando sesión en Docker Hub..."
                 withCredentials([usernamePassword(
-                    credentialsId: 'osiel11dc_dockerhub',
+                    credentialsId: 'jenkins_ci_cd',
                     usernameVariable: 'DOCKER_HUB_USER',
                     passwordVariable: 'DOCKER_HUB_TOKEN'
                 )]) {
@@ -52,32 +60,13 @@ pipeline {
             }
         }
 
-        stage('Desplegar en Kubernetes') {
-            steps {
-                echo "☸️ Iniciando despliegue en el Namespace: reybanpac-piloto..."
 
-                withCredentials([string(credentialsId: 'osiel11dc_kubeconfig', variable: 'KUBE_TXT')]) {
-                    script {
-                        // Escribir el archivo manteniendo la estructura YAML original
-                        writeFile file: '.kubeconfig', text: KUBE_TXT
+       stage('Despligue en k8s ') {
+                          steps {
+                              echo "Despliegue en k8s"
 
-                        sh """
-                            # Buscar CUALQUIER archivo yaml o yml en la carpeta y reemplazar la imagen
-                            find manifiest-k8s/ -type f \\( -name "*.yml" -o -name "*.yaml" \\) -exec sed -i "s|IMAGE_TO_REPLACE|${FULL_IMAGE}:${IMAGE_TAG}|g" {} +
+                          }
+                      }
 
-                            # Aplicar todo lo que esté dentro de la carpeta manifiest-k8s
-                            kubectl --kubeconfig=.kubeconfig apply -f manifiest-k8s/
-
-                            # Monitorear que el pod levante bien en Kubernetes
-                            kubectl --kubeconfig=.kubeconfig rollout status deployment/backend-piloto-deployment -n reybanpac-piloto
-
-                            # Destruir las credenciales temporales por seguridad
-                            rm -f .kubeconfig
-                        """
-                    }
-                }
-                echo "🚀 ¡Despliegue finalizado con éxito en Kubernetes!"
-            }
-        }
     }
 }
