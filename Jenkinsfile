@@ -2,10 +2,11 @@ pipeline {
     agent { label 'agente-docker-01' }
 
     environment {
-        DOCKER_USER  = 'diazleiso'
+        // Tu usuario real de Docker Hub
+        DOCKER_USER  = 'osiel11dc'
         IMAGE_NAME   = 'mi-backend-piloto'
         IMAGE_TAG    = "${env.BUILD_NUMBER}"
-        // Formato requerido por Docker Hub: usuario/nombre-imagen
+        // Formato obligatorio para Docker Hub: osiel11dc/mi-backend-piloto
         FULL_IMAGE   = "${DOCKER_USER}/${IMAGE_NAME}"
     }
 
@@ -24,29 +25,33 @@ pipeline {
                     cd backend-piloto && \
                     docker build -t ${FULL_IMAGE}:${IMAGE_TAG} -t ${FULL_IMAGE}:latest .
                 """
-                echo "✅ ¡Imagen construida!"
+                echo "✅ ¡Imagen construida con éxito!"
             }
         }
 
         stage('Subir a Docker Hub') {
             steps {
                 echo "🔑 Iniciando sesión en Docker Hub..."
-                // Inyectamos las credenciales de forma segura usando el ID que creamos en Jenkins
                 withCredentials([usernamePassword(
-                    credentialsId: 'osiel11dc_dockerhub',
+                    credentialsId: 'dockerhub_diazleiso',
                     usernameVariable: 'DOCKER_HUB_USER',
                     passwordVariable: 'DOCKER_HUB_TOKEN'
                 )]) {
+                    // Combinamos de forma segura las variables de Jenkins y de Linux
                     sh """
-                        echo "${DOCKER_HUB_TOKEN}" | docker login -u "${DOCKER_HUB_USER}" --password-stdin
-                        echo "📤 Subiendo imágenes..."
+                        echo "\$DOCKER_HUB_TOKEN" | docker login -u "\$DOCKER_HUB_USER" --password-stdin
+
+                        echo "📤 Subiendo imagen con tag de compilación..."
                         docker push ${FULL_IMAGE}:${IMAGE_TAG}
+
+                        echo "📤 Subiendo imagen con tag latest..."
                         docker push ${FULL_IMAGE}:latest
+
                         echo "🔒 Cerrando sesión..."
                         docker logout
                     """
                 }
-                echo "🎉 ¡Imágenes subidas a Docker Hub con éxito!"
+                echo "🎉 ¡Proceso terminado! Tus imágenes ya están públicas en tu perfil de Docker Hub."
             }
         }
     }
