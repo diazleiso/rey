@@ -16,6 +16,12 @@ pipeline {
             }
         }
 
+        stage('Testear Código') {
+                    steps {
+                        echo "Test Unitarios"
+
+                    }
+                }
         stage('Escanear Código con SonarQube') {
                     steps {
                         echo "Escanear Código con SonarQube"
