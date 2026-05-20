@@ -2,9 +2,11 @@ pipeline {
     agent { label 'agente-docker-01' }
 
     environment {
+        // Tu usuario de Docker Hub
         DOCKER_USER  = 'osiel11dc'
         IMAGE_NAME   = 'mi-backend-piloto'
         IMAGE_TAG    = "${env.BUILD_NUMBER}"
+        // Formato para Docker Hub: osiel11dc/mi-backend-piloto
         FULL_IMAGE   = "${DOCKER_USER}/${IMAGE_NAME}"
     }
 
@@ -56,26 +58,25 @@ pipeline {
             steps {
                 echo "☸️ Iniciando despliegue en el Namespace: reybanpac-piloto..."
 
-                // Usamos tu credencial de texto secreto para conectarnos de forma remota
                 withCredentials([string(credentialsId: 'osiel11dc_kubeconfig', variable: 'KUBE_TXT')]) {
                     sh """
-                        # 1. Crear el archivo temporal de acceso al clúster
+                        # 1. Crear el archivo temporal de acceso
                         echo "${KUBE_TXT}" > .kubeconfig
 
-                        # 2. Reemplazar el marcador por tu imagen real (osiel11dc/mi-backend-piloto:N)
-                        sed -i "s|IMAGE_TO_REPLACE|${FULL_IMAGE}:${IMAGE_TAG}|g"  manifiest-k8s/deployment.yml
+                        # 2. Buscar CUALQUIER archivo yaml o yml en la carpeta y reemplazar la imagen
+                        find manifiest-k8s/ -type f \\( -name "*.yml" -o -name "*.yaml" \\) -exec sed -i "s|IMAGE_TO_REPLACE|${FULL_IMAGE}:${IMAGE_TAG}|g" {} +
 
-                        # 3. Aplicar Namespace, Deployment y Service de un solo golpe
-                        kubectl --kubeconfig=.kubeconfig apply -f manifiest-k8s/deployment.yml
+                        # 3. Aplicar de golpe todo lo que esté dentro de la carpeta manifiest-k8s
+                        kubectl --kubeconfig=.kubeconfig apply -f manifiest-k8s/
 
-                        # 4. Monitorear que el pod levante bien en el namespace correcto
+                        # 4. Monitorear que el pod levante bien en Kubernetes
                         kubectl --kubeconfig=.kubeconfig rollout status deployment/backend-piloto-deployment -n reybanpac-piloto
 
-                        # 5. Destruir las credenciales temporales del disco
+                        # 5. Destruir las credenciales temporales del disco por seguridad
                         rm -f .kubeconfig
                     """
                 }
-                echo "🚀 ¡CI/CD finalizado con éxito! Tu backend está corriendo en Kubernetes."
+                echo "🚀 ¡Despliegue finalizado con éxito en Kubernetes!"
             }
         }
     }
