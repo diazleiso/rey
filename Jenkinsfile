@@ -39,7 +39,7 @@ pipeline {
             steps {
                 echo "🔑 Iniciando sesión en Docker Hub..."
                 withCredentials([usernamePassword(
-                    credentialsId: 'jenkins_ci_cd',
+                    credentialsId: 'docker_proyecto',
                     usernameVariable: 'DOCKER_HUB_USER',
                     passwordVariable: 'DOCKER_HUB_TOKEN'
                 )]) {
