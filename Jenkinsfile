@@ -33,7 +33,7 @@ pipeline {
             steps {
                 echo "🔑 Iniciando sesión en Docker Hub..."
                 withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub_diazleiso',
+                    credentialsId: 'osiel11dc_dockerhub',
                     usernameVariable: 'DOCKER_HUB_USER',
                     passwordVariable: 'DOCKER_HUB_TOKEN'
                 )]) {
