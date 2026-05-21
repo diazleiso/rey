@@ -85,27 +85,49 @@ pipeline {
         }
 
 
-      stage('Despliegue en k8s') {
-                  steps {
-                      echo "☸️ Configurando acceso al clúster de Kubernetes..."
+       stage('Despliegue en k8s') {
+                   steps {
+                       echo "☸️ Configurando acceso al clúster de Kubernetes..."
 
-                      // Usamos el ID 'k8s_config' que se ve en tu captura de Jenkins
-                      withKubeConfig([credentialsId: 'k8s_config']) {
+                       withKubeConfig([credentialsId: 'k8s_config']) {
 
-                          echo "🔍 Probando conexión con el clúster..."
-                          // 1. Esto te dirá si Jenkins de verdad logra comunicarse con el API Server
-                          sh 'kubectl cluster-info'
+                           echo "🔍 Probando conexión con el clúster..."
+                           sh 'kubectl cluster-info'
 
-                          // 2. Esto listará los nodos para confirmar el estado
-                          sh 'kubectl get nodes'
+                           echo "🚀 Asegurando la existencia del namespace..."
+                           sh "kubectl apply -f manifiest-k8s/namespace.yaml || true"
 
-                          echo "🚀 Aplicando manifiestos de despliegue..."
-                          // Aquí pones tus comandos reales de despliegue, por ejemplo:
-                          // sh 'kubectl apply -f k8s/deployment.yaml'
-                          // sh "kubectl set image deployment/mi-backend-deployment mi-contenedor=${FULL_IMAGE}:${IMAGE_TAG}"
-                      }
-                  }
-              }
+                           echo "🔑 Inyectando credenciales de Docker Hub en Kubernetes..."
+                           // Usamos la misma credencial de Jenkins para generar el secreto en K8s de forma segura
+                           withCredentials([usernamePassword(
+                               credentialsId: 'docker_proyecto',
+                               usernameVariable: 'DOCKER_USER_K8S',
+                               passwordVariable: 'DOCKER_TOKEN_K8S'
+                           )]) {
+                               sh """
+                                   kubectl -n reybanpac-piloto create secret docker-registry regcred \
+                                       --docker-server=https://index.docker.io/v1/ \
+                                       --docker-username="${DOCKER_USER_K8S}" \
+                                       --docker-password="${DOCKER_TOKEN_K8S}" \
+                                       --dry-run=client -o yaml | kubectl apply -f -
+                               """
+                           }
+
+                           echo "🚀 Aplicando manifiestos de Kubernetes (service, deployment)..."
+                           sh "kubectl apply -f manifiest-k8s/backend-service.yaml"
+                           sh "kubectl apply -f manifiest-k8s/backend-deployment.yaml"
+
+                           echo "🔁 Actualizando la imagen del deployment al build actual: ${FULL_IMAGE}:${IMAGE_TAG}"
+                           sh "kubectl -n reybanpac-piloto set image deployment/backend-piloto-deployment backend-piloto=${FULL_IMAGE}:${IMAGE_TAG}"
+
+                           echo "⏳ Esperando a que el rollout termine..."
+                           sh "kubectl -n reybanpac-piloto rollout status deployment/backend-piloto-deployment --timeout=120s"
+
+                           echo "📋 Estado final de los pods en el namespace reybanpac-piloto"
+                           sh "kubectl -n reybanpac-piloto get pods -o wide"
+                       }
+                   }
+               }
 
     }
 }
