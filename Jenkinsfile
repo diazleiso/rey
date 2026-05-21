@@ -6,9 +6,26 @@ pipeline {
         IMAGE_NAME   = 'mi-backend-piloto'
         IMAGE_TAG    = "${env.BUILD_NUMBER}"
         FULL_IMAGE   = "${DOCKER_USER}/${IMAGE_NAME}"
+
+        AZURE_REPO_URL = 'https://SOAINTCORP@dev.azure.com/SOAINTCORP/ECU_2026-0000001_REYBANPAC_IMPLEMENTACION_ARQUIECTURA%20CONTENEDRS/_git/ECU_2026-0000001_REYBANPAC_IMPLEMENTACION_ARQUIECTURA%20CONTENEDRS'
+        BRANCH = 'master'
     }
 
     stages {
+         stage('Clonar Repositorio AZURE') {
+                    steps {
+                        echo 'CLONADO DE AZURE REPO'
+                         git(
+                              url: "${AZURE_REPO_URL}",
+                              branch: "${BRANCH}",
+                              credentialsId: 'azure-devops-creds'
+                              )
+                    }
+                }
+
+
+
+
         stage('Clonar Repositorio') {
             steps {
                 checkout scm
@@ -21,7 +38,7 @@ pipeline {
                         echo "Test Unitarios"
 
                     }
-                }
+        }
         stage('Escanear Código con SonarQube') {
                     steps {
                         echo "Escanear Código con SonarQube"
