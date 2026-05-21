@@ -94,10 +94,10 @@ pipeline {
 
                           echo "🔍 Probando conexión con el clúster..."
                           // 1. Esto te dirá si Jenkins de verdad logra comunicarse con el API Server
-                          sh 'kubectl cluster-info'
+                          sh ' sudo kubectl cluster-info'
 
                           // 2. Esto listará los nodos para confirmar el estado
-                          sh 'kubectl get nodes'
+                          sh 'sudo kubectl get nodes'
 
                           echo "🚀 Aplicando manifiestos de despliegue..."
                           // Aquí pones tus comandos reales de despliegue, por ejemplo:
