@@ -20,8 +20,9 @@ pipeline {
                               branch: "${BRANCH}",
                               credentialsId: 'azure-devops-creds'
                               )
+                        sh 'ls -la'
                     }
-                }
+         }
 
 
 
@@ -84,12 +85,27 @@ pipeline {
         }
 
 
-       stage('Despligue en k8s ') {
-                          steps {
-                              echo "Despliegue en k8s"
+      stage('Despliegue en k8s') {
+                  steps {
+                      echo "☸️ Configurando acceso al clúster de Kubernetes..."
 
-                          }
+                      // Usamos el ID 'k8s_config' que se ve en tu captura de Jenkins
+                      withKubeConfig([credentialsId: 'k8s_config']) {
+
+                          echo "🔍 Probando conexión con el clúster..."
+                          // 1. Esto te dirá si Jenkins de verdad logra comunicarse con el API Server
+                          sh 'kubectl cluster-info'
+
+                          // 2. Esto listará los nodos para confirmar el estado
+                          sh 'kubectl get nodes'
+
+                          echo "🚀 Aplicando manifiestos de despliegue..."
+                          // Aquí pones tus comandos reales de despliegue, por ejemplo:
+                          // sh 'kubectl apply -f k8s/deployment.yaml'
+                          // sh "kubectl set image deployment/mi-backend-deployment mi-contenedor=${FULL_IMAGE}:${IMAGE_TAG}"
                       }
+                  }
+              }
 
     }
 }
