@@ -158,3 +158,4 @@ El servicio de benchmark utiliza Worker Threads de Node.js para:
 *Anexo F — Aplicativo Piloto (Backend NestJS)*
 *Documento generado para el proyecto ECU-2026-0000001 — REYBANPAC*
 *SOAINT © 2026 — Confidencial*
+# piloto
